@@ -1,0 +1,204 @@
+
+Water_Level_Detector.asm   Assembled with CASM12Z  2017-04-04  10:37:21 AM  
+PAGE 1
+
+
+
+                            1  ;**** Timer **** 
+ 000000                   2  TSCR1 EQU $46
+ 000000                   3  TSCR2 EQU $4D
+ 000000                   4  TIOS  EQU $40
+ 000000                   5  TCTL1 EQU $48
+ 000000                   6  TCTL2 EQU $49
+ 000000                   7  TFLG1 EQU $4E
+ 000000                   8  TIE   EQU $4C
+ 000000                   9  TSCNT EQU $44
+ 000000                  10  TC4          EQU $58
+ 000000                  11  TC1          EQU $52
+                           12  ;***************
+                           13  
+                           14  ;*** PORTS **** 
+ 000000                  15  DDRA  EQU $02
+ 000000                  16  PORTA EQU $00
+ 000000                  17  PORTB EQU $01
+ 000000                  18  DDRB  EQU $03
+ 000000                  19  PORTM EQU $0250
+ 000000                  20  DDRM  EQU $0252
+                           21  ;**************
+                           22  
+                           23  ;*** ADC Unit *** 
+ 000000                  24  ATDCTL2    EQU $122
+ 000000                  25  ATDCTL4 EQU $124
+ 000000                  26  ATDCTL5 EQU $125
+ 000000                  27  ADTSTAT0 EQU $126
+ 000000                  28  ATD1DR1H EQU $132
+ 000000                  29  ATD1DR1L EQU $133
+                           30  ;****************                
+                           31           
+ 001000                  32             ORG             $1000
+ 001000                  33  DutyCycle          ds 2
+ 000400                  34             ORG $400
+                           35                   
+ 000400 [01] 8690        36             ldaa #$90
+ 000402 [02] 5A46        37             staa TSCR1
+                           38   
+ 000404 [01] 8603        39             ldaa #$03
+ 000406 [02] 5A4D        40             staa TSCR2
+                           41   
+ 000408 [01] 8602        42             ldaa #$02
+ 00040A [02] 5A40        43             staa TIOS
+                           44           
+ 00040C [01] 86FF        45             LDAA #$FF
+ 00040E [02] 5A02        46             STAA DDRA
+                           47           
+ 000410 [01] 8600        48             LDAA #$00
+ 000412 [02] 5A03        49             staa DDRB
+                           50  
+ 000414 [03] 9601        51  Detect                     LDAA PORTB; load the 
+                               input to accumulator A
+                           52                           
+ 000416 [01] 81F0        53  compare1           cmpa #$F0; compare for Empty
+ 000418 [03] 2E0C        54                             bgt compare2; if not 
+                               true branch to half
+ 00041A [01] 8600        55  empty                      ldaa #$00; if true all 
+
+
+Water_Level_Detector.asm   Assembled with CASM12Z  2017-04-04  10:37:21 AM  PAGE 2
+
+
+
+                               lights are off
+ 00041C [02] 5A00        56                             staa PORTA
+ 00041E [02] CC01F4      57                             ldd #!500
+ 000421 [03] 7C1000      58                             std DutyCycle
+ 000424 [03] 204F        59                             bra Motor
+                           60                           
+ 000426 [01] 81F1        61  compare2           cmpa #$F1; compare for Quarter 
+                               Full
+ 000428 [03] 2E10        62                         bgt compare3; if not true 
+                               branch to half
+ 00042A [03] 2702        63                             beq Quarter;
+ 00042C [03] 2DEC        64                             blt empty;
+ 00042E [01] 8603        65  Quarter                    ldaa #$03; if true 
+                               turn on  2 lights of PORTA
+ 000430 [02] 5A00        66                             staa PORTA
+ 000432 [02] CC015E      67                             ldd #!350
+ 000435 [03] 7C1000      68                             std DutyCycle
+ 000438 [03] 203B        69                             bra Motor
+                           70           
+ 00043A [01] 81F2        71  compare3           cmpa #$F2; compare for half 
+                               Full
+ 00043C [03] 2E11        72                             bgt compare4; if not 
+                               true branch to ThreeQuarter                     
+                                  
+ 00043E [03] 2702        73                             beq half;
+ 000440 [03] 2DEC        74                             blt Quarter;
+ 000442 [02] CC000F      75  half                       ldd #$0F; if true turn 
+                               on 4 lights of PORTA
+ 000445 [02] 5C00        76                             std PORTA
+ 000447 [02] CC00FA      77                             ldd #!250
+ 00044A [03] 7C1000      78                             std DutyCycle
+ 00044D [03] 2026        79                             bra Motor
+                           80           
+ 00044F [01] 81F4        81  compare4           cmpa #$F4; compare for 
+                               ThreeQuarter Full
+ 000451 [03] 2E10        82                             bgt compare5; if not 
+                               true branch to Full
+ 000453 [03] 2702        83                             beq ThreeQuarter
+ 000455 [03] 2DEB        84                             blt half
+ 000457 [01] 863F        85  ThreeQuarter       ldaa #$3F; if true turn on 6 
+                               lights of PORTA
+ 000459 [02] 5A00        86                             staa PORTA
+ 00045B [02] CC0096      87                             ldd #!150
+ 00045E [03] 7C1000      88                             std DutyCycle
+ 000461 [03] 2012        89                             bra Motor
+                           90                           
+ 000463 [01] 81F8        91  compare5           cmpa #$F8; compare for Full
+ 000465 [03] 2702        92                             beq Full;
+ 000467 [03] 2DEE        93                             blt ThreeQuarter
+ 000469 [01] 86FF        94  Full                       ldaa #$FF; turn on 8 
+                               lights of PORTA
+ 00046B [02] 5A00        95                             staa PORTA
+ 00046D [02] CC0000      96                             ldd #!0
+ 000470 [03] 7C1000      97                             std DutyCycle
+ 000473 [03] 2000        98                             bra Motor
+                           99                           
+ 000475 [03] 9601       100  Motor                      ldaa PORTB
+ 000477 [01] 81F0       101                             cmpa #$F0
+
+
+Water_Level_Detector.asm   Assembled with CASM12Z  2017-04-04  10:37:21 AM  PAGE 3
+
+
+
+ 000479 [03] 2799       102                             beq Detect
+ 00047B [03] DC44       103                             ldd TSCNT
+ 00047D [02] C30096     104                             addd #!150
+ 000480 [03] F31000     105                             addd DutyCycle
+ 000483 [02] 5C52       106                             std TC1
+                          107   
+ 000485 [01] 8608       108                             ldaa #$08
+ 000487 [02] 5A49       109                             staa TCTL2
+                          110   
+ 000489 [04] 4F4E02FC   111  wait1                      brclr TFLG1,$02,wait1  
+                                
+                          112   
+ 00048D [03] DC44       113                             ldd TSCNT
+                          114    
+ 00048F [02] C30400     115                             addd #!1024
+ 000492 [03] B31000     116                             subd DutyCycle
+ 000495 [02] 5C52       117                             std TC1
+                          118    
+ 000497 [01] 860C       119                             ldaa #$0C
+ 000499 [02] 5A49       120                             staa TCTL2
+                          121   
+ 00049B [04] 4F4E02FC   122  wait2                      brclr TFLG1,$02,wait2
+                          123                           
+ 00049F [03] 20D4       124                             bra MOTOR
+                          125   
+
+ Symbol Table 
+
+ADTSTAT0         000126
+ATD1DR1H         000132
+ATD1DR1L         000133
+ATDCTL2          000122
+ATDCTL4          000124
+ATDCTL5          000125
+COMPARE1         000416
+COMPARE2         000426
+COMPARE3         00043A
+COMPARE4         00044F
+COMPARE5         000463
+DDRA             000002
+DDRB             000003
+DDRM             000252
+DETECT           000414
+DUTYCYCLE        001000
+EMPTY            00041A
+FULL             000469
+HALF             000442
+MOTOR            000475
+PORTA            000000
+PORTB            000001
+PORTM            000250
+QUARTER          00042E
+TC1              000052
+TC4              000058
+TCTL1            000048
+TCTL2            000049
+TFLG1            00004E
+THREEQUARTER     000457
+
+
+Water_Level_Detector.asm   Assembled with CASM12Z  2017-04-04  10:37:21 AM  PAGE 4
+
+
+
+TIE              00004C
+TIOS             000040
+TSCNT            000044
+TSCR1            000046
+TSCR2            00004D
+WAIT1            000489
+WAIT2            00049B

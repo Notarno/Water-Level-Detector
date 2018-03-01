@@ -1,0 +1,459 @@
+
+WaterDetector_cool.asm   Assembled with CASM12Z  2017-04-04  6:42:33 PM  PAGE 1
+
+
+
+                            1  ;**** Timer **** 
+ 000000                   2  TSCR1 EQU $46
+ 000000                   3  TSCR2 EQU $4D
+ 000000                   4  TIOS  EQU $40
+ 000000                   5  TCTL1 EQU $48
+ 000000                   6  TCTL2 EQU $49
+ 000000                   7  TFLG1 EQU $4E
+ 000000                   8  TIE   EQU $4C
+ 000000                   9  TSCNT EQU $44
+ 000000                  10  TC4          EQU $58
+ 000000                  11  TC1          EQU $52
+                           12  ;***************
+                           13  
+                           14  ;*** PORTS **** 
+ 000000                  15  DDRA  EQU $02
+ 000000                  16  PORTA EQU $00
+ 000000                  17  PORTB EQU $01
+ 000000                  18  DDRB  EQU $03
+ 000000                  19  PORTM EQU $0250
+ 000000                  20  DDRM  EQU $0252
+                           21  ;**************
+                           22  
+                           23  ;*** ADC Unit *** 
+ 000000                  24  ATDCTL2    EQU $122
+ 000000                  25  ATDCTL4 EQU $124
+ 000000                  26  ATDCTL5 EQU $125
+ 000000                  27  ADTSTAT0 EQU $126
+ 000000                  28  ATD1DR1H EQU $132
+ 000000                  29  ATD1DR1L EQU $133
+                           30  ;****************                
+                           31           
+ 001000                  32                             ORG $1000
+ 001000                  33  DutyCycle          DS 2
+ 001002                  34  written                    ds 1
+                           35           
+ 000400                  36                             ORG $400
+ 000400 [02] CF4000      37                             LDS #$4000 
+                           38                           
+ 000403 [04] 1605AE      39                             jsr initLCD
+ 000406 [04] 160618      40                             jsr Delay1MS
+                           41           
+ 000409 [01] 8600        42                             LDAA #$00
+ 00040B [02] 5A03        43                             staa DDRB
+                           44                           
+ 00040D [01] 8690        45                             LDAA #$90              
+                                        ; Perform basic timer initialization 
+                               to setup an output compare on PT4
+ 00040F [02] 5A46        46                             STAA TSCR1
+ 000411 [01] 8603        47                             LDAA #$03
+ 000413 [02] 5A4D        48                             STAA TSCR2 
+ 000415 [01] 8612        49                             ldaa #$12
+ 000417 [02] 5A40        50                             staa TIOS              
+                                                                        
+ 000419 [01] 8601        51                             LDAA #$01
+ 00041B [02] 5A48        52                             STAA TCTL1
+                           53                           
+ 00041D [01] 8600        54                             ldaa #0
+ 00041F [03] 7A1002      55                             staa written
+
+
+WaterDetector_cool.asm   Assembled with CASM12Z  2017-04-04  6:42:33 PM  PAGE 2
+
+
+
+                           56  
+ 000422 [03] 9601        57  Test                       LDAA PORTB             
+                                ; load the input to accumulator A
+                           58                           
+ 000424 [01] 81F0        59  compare1           cmpa #$F0               ; 
+                               compare for Empty
+ 000426 [03] 2E63        60                             bgt compare2    ; if 
+                               not true branch to half
+ 000428 [03] B61002      61  empty                      ldaa written
+ 00042B [01] 8100        62                             cmpa #0
+ 00042D [03] 2702        63                             beq write
+ 00042F [03] 26F1        64                             bne TEST
+ 000431 [01] 8601        65  write                      ldaa #1
+ 000433 [03] 7A1002      66                             staa written
+                           67                           
+ 000436 [01] 8614        68                             ldaa #$14
+ 000438 [03] 7A0250      69                             staa PORTM             
+                                                
+                           70                           
+ 00043B [01] 8645        71                             ldaa #$45
+ 00043D [02] 5A00        72                             staa PORTA
+                           73           
+ 00043F [04] 1D025010    74                             bclr PORTM,$10   
+ 000443 [04] 160618      75                             jsr Delay1MS
+ 000446 [04] 160618      76                             jsr Delay1MS
+ 000449 [04] 1C025010    77                             bset PORTM,$10   
+                           78           
+ 00044D [01] 864D        79                             ldaa #$4D
+ 00044F [02] 5A00        80                             staa PORTA
+                           81           
+ 000451 [04] 1D025010    82                             bclr PORTM,$10   
+ 000455 [04] 160618      83                             jsr Delay1MS
+ 000458 [04] 1C025010    84                             bset PORTM,$10  
+                           85                           
+ 00045C [01] 8650        86                             ldaa #$50
+ 00045E [02] 5A00        87                             staa PORTA
+                           88           
+ 000460 [04] 1D025010    89                             bclr PORTM,$10   
+ 000464 [04] 160618      90                             jsr Delay1MS
+ 000467 [04] 1C025010    91                             bset PORTM,$10  
+                           92           
+ 00046B [01] 8654        93                             ldaa #$54
+ 00046D [02] 5A00        94                             staa PORTA
+                           95                           
+ 00046F [04] 1D025010    96                             bclr PORTM,$10   
+ 000473 [04] 160618      97                             jsr Delay1MS
+ 000476 [04] 1C025010    98                             bset PORTM,$10  
+                           99           
+ 00047A [01] 8659       100                             ldaa #$59
+ 00047C [02] 5A00       101                             staa PORTA
+                          102           
+ 00047E [04] 1D025010   103                             bclr PORTM,$10   
+ 000482 [04] 160618     104                             jsr Delay1MS
+ 000485 [04] 1C025010   105                             bset PORTM,$10
+ 000489 [03] 2097       106                             bra Test
+                          107                           
+ 00048B [01] 81F1       108  compare2           cmpa #$F1               ; 
+                               compare for Quarter Full
+
+
+WaterDetector_cool.asm   Assembled with CASM12Z  2017-04-04  6:42:33 PM  PAGE 3
+
+
+
+ 00048D [03] 2E2D       109                         bgt compare3        ; if 
+                               not true branch to half
+ 00048F [03] 2702       110                             beq Quarter
+ 000491 [03] 2D95       111                             blt empty
+ 000493 [01] 8600       112  Quarter                    ldaa #0
+ 000495 [03] 7A1002     113                             staa written
+ 000498 [01] 8610       114                             ldaa #$10
+ 00049A [03] 7A0250     115                             staa PORTM
+                          116  
+ 00049D [01] 8601       117                             ldaa #$01
+ 00049F [02] 5A00       118                             staa PORTA
+ 0004A1 [04] 160618     119                             jsr Delay1MS           
+                                        
+ 0004A4 [04] 1D025010   120                             bclr PORTM,$10   
+ 0004A8 [04] 160618     121                             jsr Delay1MS
+ 0004AB [04] 1C025010   122                             bset PORTM,$10  
+ 0004AF [04] 160618     123                             jsr Delay1MS
+ 0004B2 [02] CC0096     124                             ldd #!150
+ 0004B5 [03] 7C1000     125                             std DutyCycle
+ 0004B8 [04] 182000C4   126                             lbra Motor
+                          127           
+ 0004BC [01] 81F2       128  compare3           cmpa #$F2               ; 
+                               compare for half Full
+ 0004BE [03] 2E31       129                             bgt compare4    ; if 
+                               not true branch to ThreeQuarter                 
+                                  
+ 0004C0 [03] 2702       130                             beq half
+ 0004C2 [03] 2DCF       131                             blt Quarter
+ 0004C4 [01] 8600       132  half                       ldaa #0
+ 0004C6 [03] 7A1002     133                             staa written
+ 0004C9 [01] 8610       134                             ldaa #$10
+ 0004CB [03] 7A0250     135                             staa PORTM
+                          136  
+ 0004CE [01] 8601       137                             ldaa #$01
+ 0004D0 [02] 5A00       138                             staa PORTA
+ 0004D2 [04] 160618     139                             jsr Delay1MS           
+                                        
+ 0004D5 [04] 1D025010   140                             bclr PORTM,$10   
+ 0004D9 [04] 160618     141                             jsr Delay1MS
+ 0004DC [04] 1C025010   142                             bset PORTM,$10  
+ 0004E0 [04] 160618     143                             jsr Delay1MS
+ 0004E3 [02] CC00FA     144                             ldd #!250
+ 0004E6 [03] 7C1000     145                             std DutyCycle
+ 0004E9 [03] 9601       146                             ldaa PORTB
+ 0004EB [01] 81F2       147                             cmpa #$F2
+ 0004ED [03] 1827008F   148                             lbeq Motor
+                          149           
+ 0004F1 [01] 81F4       150  compare4           cmpa #$F4               ; 
+                               compare for ThreeQuarter Full
+ 0004F3 [03] 2E2F       151                             bgt compare5    ; if 
+                               not true branch to Full
+ 0004F5 [03] 2702       152                             beq ThreeQuarter
+ 0004F7 [03] 2DCB       153                             blt half
+ 0004F9 [01] 8600       154  ThreeQuarter       ldaa #0
+ 0004FB [03] 7A1002     155                             staa written
+ 0004FE [01] 8610       156                             ldaa #$10
+ 000500 [03] 7A0250     157                             staa PORTM
+                          158  
+
+
+WaterDetector_cool.asm   Assembled with CASM12Z  2017-04-04  6:42:33 PM  PAGE 4
+
+
+
+ 000503 [01] 8601       159                             ldaa #$01
+ 000505 [02] 5A00       160                             staa PORTA
+ 000507 [04] 160618     161                             jsr Delay1MS           
+                                        
+ 00050A [04] 1D025010   162                             bclr PORTM,$10   
+ 00050E [04] 160618     163                             jsr Delay1MS
+ 000511 [04] 1C025010   164                             bset PORTM,$10  
+ 000515 [04] 160618     165                             jsr Delay1MS
+ 000518 [02] CC01C2     166                             ldd #!450
+ 00051B [03] 7C1000     167                             std DutyCycle
+ 00051E [03] 9601       168                             ldaa PORTB
+ 000520 [01] 81F4       169                             cmpa #$F4
+ 000522 [03] 275C       170                             beq Motor
+                          171                           
+ 000524 [01] 81F8       172  compare5           cmpa #$F8               ; 
+                               compare for Full
+ 000526 [03] 2702       173                             beq Full
+ 000528 [03] 2DCF       174                             blt ThreeQuarter
+ 00052A [01] 8600       175  Full                       ldaa #0
+ 00052C [03] 7A1002     176                             staa written
+ 00052F [01] 8610       177                             ldaa #$10
+ 000531 [03] 7A0250     178                             staa PORTM
+                          179  
+ 000534 [01] 8601       180                             ldaa #$01
+ 000536 [02] 5A00       181                             staa PORTA
+ 000538 [04] 160618     182                             jsr Delay1MS           
+                                        
+ 00053B [04] 1D025010   183                             bclr PORTM,$10   
+ 00053F [04] 160618     184                             jsr Delay1MS
+ 000542 [04] 1C025010   185                             bset PORTM,$10  
+ 000546 [04] 160618     186                             jsr Delay1MS
+ 000549 [02] CC00FA     187                             ldd #!250
+ 00054C [03] 7C1000     188                             std DutyCycle
+ 00054F [03] 9601       189                             ldaa PORTB
+ 000551 [01] 81F1       190                             cmpa #$F1
+ 000553 [03] 2700       191                             beq soundAlarm
+                          192           
+ 000555 [03] 9601       193  soundAlarm         ldaa PORTB
+ 000557 [01] 81F0       194                             cmpa #$F0
+ 000559 [03] 1827FEC5   195                             lbeq Test
+ 00055D [03] DC44       196                             LDD TSCNT
+ 00055F [03] F31000     197                             ADDD DutyCycle         
+                                                ; Add an offset to the current 
+                               TSCNT equivalent to the ON time and store to TC4
+ 000562 [02] 5C58       198                             STD TC4
+ 000564 [01] 8602       199                             LDAA #$02              
+                                                        ; Initialize register 
+                               TCTL1 to CLEAR bit 4 on a compare event
+ 000566 [02] 5A48       200                             STAA TCTL1
+ 000568 [04] 4F4E10FC   201  wait                       BRCLR TFLG1,$10,wait   
+                                                ; Spin until the TFLG1 
+                               register indicates a bit 4 compare event
+ 00056C [02] CC0400     202                             LDD #!1024
+ 00056F [03] B31000     203                             SUBD DutyCycle
+ 000572 [03] D344       204                             ADDD TSCNT      
+                          205                                                  
+                                                ; Read current 16 bit value of 
+                               TSCNT                            ; Add an 
+
+
+WaterDetector_cool.asm   Assembled with CASM12Z  2017-04-04  6:42:33 PM  PAGE 5
+
+
+
+                               offset to the current TSCNT equivalent to the 
+                               OFF time and store to TC4
+ 000574 [02] 5C58       206                             STD TC4
+ 000576 [01] 8603       207                             LDAA #$03              
+                                                        ; Initialize register 
+                               TCTL1 to SET bit 4 on a compare event
+ 000578 [02] 5A48       208                             STAA TCTL1
+ 00057A [04] 4F4E10FC   209  wait2                      BRCLR TFLG1,$10,wait2  
+                                                ; Spin until the TFLG1 
+                               register indicates a bit 4 compare event
+                          210                   
+ 00057E [03] 20D5       211                             bra soundAlarm
+                          212                           
+ 000580 [03] 9601       213  Motor                      ldaa PORTB
+ 000582 [01] 81F0       214                             cmpa #$F0
+ 000584 [03] 1827FE9A   215                             lbeq Test
+ 000588 [03] DC44       216                             ldd TSCNT
+ 00058A [02] C30096     217                             addd #!150
+ 00058D [03] F31000     218                             addd DutyCycle
+ 000590 [02] 5C52       219                             std TC1
+                          220   
+ 000592 [01] 8608       221                             ldaa #$08
+ 000594 [02] 5A49       222                             staa TCTL2
+                          223   
+ 000596 [04] 4F4E02FC   224  wait1                      brclr TFLG1,$02,wait1  
+                                
+                          225   
+ 00059A [03] DC44       226                             ldd TSCNT
+                          227    
+ 00059C [02] C30400     228                             addd #!1024
+ 00059F [03] B31000     229                             subd DutyCycle
+ 0005A2 [02] 5C52       230                             std TC1
+                          231    
+ 0005A4 [01] 860C       232                             ldaa #$0C
+ 0005A6 [02] 5A49       233                             staa TCTL2
+                          234   
+ 0005A8 [04] 4F4E02FC   235  wait3                      brclr TFLG1,$02,wait3
+                          236                           
+ 0005AC [03] 20D2       237                             bra MOTOR
+                          238                           
+                          239  
+ 0005AE [01] 86FF       240  InitLCD:   ldaa #$FF ; Set port A to output for 
+                               now
+ 0005B0 [02] 5A02       241             staa DDRA
+                          242  
+ 0005B2 [01] 861C       243                  ldaa #$1C ; Set port M bits 4,3,2
+ 0005B4 [03] 7A0252     244             staa DDRM
+                          245  
+                          246  
+ 0005B7 [01] 8630       247             LDAA #$30       ; We need to send this 
+                               command a bunch of times
+ 0005B9 [02] 36         248             psha
+ 0005BA [01] 8605       249             LDAA #5     ; delay value
+ 0005BC [02] 36         250             psha
+ 0005BD [04] 1605FA     251             jsr SendWithDelay
+ 0005C0 [03] 32         252             pula
+                          253  
+ 0005C1 [01] 8601       254             ldaa #1
+
+
+WaterDetector_cool.asm   Assembled with CASM12Z  2017-04-04  6:42:33 PM  PAGE 6
+
+
+
+ 0005C3 [02] 36         255             psha
+ 0005C4 [04] 1605FA     256             jsr SendWithDelay
+ 0005C7 [04] 1605FA     257             jsr SendWithDelay
+ 0005CA [04] 1605FA     258             jsr SendWithDelay
+ 0005CD [03] 32         259             pula
+ 0005CE [03] 32         260             pula
+                          261  
+ 0005CF [01] 8608       262             ldaa #$08
+ 0005D1 [02] 36         263             psha
+ 0005D2 [01] 8601       264             ldaa #1
+ 0005D4 [02] 36         265             psha
+ 0005D5 [04] 1605FA     266             jsr SendWithDelay
+ 0005D8 [03] 32         267             pula
+ 0005D9 [03] 32         268             pula
+                          269  
+ 0005DA [01] 8601       270             ldaa #1
+ 0005DC [02] 36         271             psha
+ 0005DD [02] 36         272             psha
+ 0005DE [04] 1605FA     273             jsr SendWithDelay
+ 0005E1 [03] 32         274             pula
+ 0005E2 [03] 32         275             pula
+                          276  
+ 0005E3 [01] 8606       277             ldaa #6
+ 0005E5 [02] 36         278             psha
+ 0005E6 [01] 8601       279             ldaa #1
+ 0005E8 [02] 36         280             psha
+ 0005E9 [04] 1605FA     281             jsr SendWithDelay
+ 0005EC [03] 32         282             pula
+ 0005ED [03] 32         283             pula
+                          284  
+ 0005EE [01] 860E       285             ldaa #$0E
+ 0005F0 [02] 36         286             psha
+ 0005F1 [01] 8601       287             ldaa #1
+ 0005F3 [02] 36         288             psha
+ 0005F4 [04] 1605FA     289             jsr SendWithDelay
+ 0005F7 [03] 32         290             pula
+ 0005F8 [03] 32         291             pula
+                          292  
+ 0005F9 [05] 3D         293             rts
+                          294  
+                          295  
+ 0005FA [01] B775       296  SendWithDelay:  TSX
+ 0005FC [03] A603       297             LDAA 3,x
+ 0005FE [02] 5A00       298             STAA PORTA
+                          299  
+ 000600 [04] 1C025010   300             bset PORTM,$10   ; Turn on bit 4
+ 000604 [04] 160618     301             jsr Delay1MS
+ 000607 [04] 1D025010   302             bclr PORTM,$10   ; Turn off bit 4
+                          303  
+ 00060B [01] B775       304             tsx
+ 00060D [03] A602       305             ldaa 2,x
+ 00060F [02] 36         306             psha
+ 000610 [01] 87         307             clra
+ 000611 [02] 36         308             psha
+ 000612 [04] 16061F     309             jsr Delay
+ 000615 [03] 32         310             pula
+ 000616 [03] 32         311             pula
+ 000617 [05] 3D         312             rts
+
+
+WaterDetector_cool.asm   Assembled with CASM12Z  2017-04-04  6:42:33 PM  PAGE 7
+
+
+
+                          313  
+                          314  Delay1MS:  
+ 000618 [02] CD0800     315             ldy     #$800
+ 00061B [01] 03         316  top:       dey
+ 00061C [03] 26FD       317             bne     top     
+ 00061E [05] 3D         318             rts
+                          319           
+ 00061F [03] E602       320  Delay:             ldab 2,x
+ 000621 [04] 160618     321  start:             jsr Delay1MS
+ 000624 [01] 53         322                     decb
+ 000625 [03] 26FA       323                     bne start
+ 000627 [05] 3D         324                     rts
+                          325   
+
+ Symbol Table 
+
+ADTSTAT0         000126
+ATD1DR1H         000132
+ATD1DR1L         000133
+ATDCTL2          000122
+ATDCTL4          000124
+ATDCTL5          000125
+COMPARE1         000424
+COMPARE2         00048B
+COMPARE3         0004BC
+COMPARE4         0004F1
+COMPARE5         000524
+DDRA             000002
+DDRB             000003
+DDRM             000252
+DELAY            00061F
+DELAY1MS         000618
+DUTYCYCLE        001000
+EMPTY            000428
+FULL             00052A
+HALF             0004C4
+INITLCD          0005AE
+MOTOR            000580
+PORTA            000000
+PORTB            000001
+PORTM            000250
+QUARTER          000493
+SENDWITHDELAY    0005FA
+SOUNDALARM       000555
+START            000621
+TC1              000052
+TC4              000058
+TCTL1            000048
+TCTL2            000049
+TEST             000422
+TFLG1            00004E
+THREEQUARTER     0004F9
+TIE              00004C
+TIOS             000040
+TOP              00061B
+TSCNT            000044
+TSCR1            000046
+TSCR2            00004D
+
+
+WaterDetector_cool.asm   Assembled with CASM12Z  2017-04-04  6:42:33 PM  PAGE 8
+
+
+
+WAIT             000568
+WAIT1            000596
+WAIT2            00057A
+WAIT3            0005A8
+WRITE            000431
+WRITTEN          001002
